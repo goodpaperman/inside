@@ -1,0 +1,47 @@
+// Demo.odl : type library source for Demo.dll
+
+// This file will be processed by the MIDL compiler to produce the
+// type library (Demo.tlb).
+
+[ uuid(A3947FBA-6BCC-463D-8FB1-B6281AB21832), version(1.0) ]
+library Demo
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+
+
+
+	//  Primary dispatch interface for CDemoAuto
+	
+	[ uuid(E3EA3678-AE8D-43B6-B418-7E3A1CD7CC2D) ]
+	dispinterface IDemoAuto
+	{
+		properties:
+			// NOTE - ClassWizard will maintain property information here.
+			//    Use extreme caution when editing this section.
+			//{{AFX_ODL_PROP(CDemoAuto)
+			[id(1)] long LongData;
+			[id(2)] VARIANT TextData;
+			//}}AFX_ODL_PROP
+			
+		methods:
+			// NOTE - ClassWizard will maintain method information here.
+			//    Use extreme caution when editing this section.
+			//{{AFX_ODL_METHOD(CDemoAuto)
+			[id(3)] boolean DisplayDialog();
+			//}}AFX_ODL_METHOD
+
+	};
+
+	//  Class information for CDemoAuto
+
+	[ uuid(C67BE7D0-9010-4E06-B282-7E8798D15168) ]
+	coclass Auto
+	{
+		[default] dispinterface IDemoAuto;
+	};
+
+	//{{AFX_APPEND_ODL}}
+	//}}AFX_APPEND_ODL}}
+};

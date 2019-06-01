@@ -1,0 +1,33 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: Demo - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP16C.bat" with contents
+[
+@echo off
+start /wait hcw /C /E /M "hlp\Demo.hpj"
+if errorlevel 1 goto :Error
+if not exist "hlp\Demo.hlp" goto :Error
+copy "hlp\Demo.hlp" .\Debug
+goto :done
+:Error
+echo hlp\Demo.hpj(1) : error:
+type "hlp\Demo.log"
+:done
+]
+Creating command line "C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP16C.bat"
+<h3>Output Window</h3>
+Making help file...
+已复制         1 个文件。
+
+
+
+<h3>Results</h3>
+Demo.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: Ex32b - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP157.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Fp"Debug/Ex32b.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\codes\mfc\07.Kruglinski.Inside Visual C++ 5.0\32.chapter\Demo.02\CntrItem.cpp"
+"E:\codes\mfc\07.Kruglinski.Inside Visual C++ 5.0\32.chapter\Demo.02\Ex32b.cpp"
+"E:\codes\mfc\07.Kruglinski.Inside Visual C++ 5.0\32.chapter\Demo.02\Ex32bView.cpp"
+"E:\codes\mfc\07.Kruglinski.Inside Visual C++ 5.0\32.chapter\Demo.02\PostThread.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP157.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP158.tmp" with contents
+[
+/nologo /subsystem:windows /incremental:yes /pdb:"Debug/Ex32b.pdb" /debug /machine:I386 /out:"Debug/Ex32b.exe" /pdbtype:sept 
+".\Debug\CntrItem.obj"
+".\Debug\Ex32b.obj"
+".\Debug\Ex32bDoc.obj"
+".\Debug\Ex32bView.obj"
+".\Debug\IpFrame.obj"
+".\Debug\MainFrm.obj"
+".\Debug\SrvrItem.obj"
+".\Debug\StdAfx.obj"
+".\Debug\valform.obj"
+".\Debug\Ex32b.res"
+".\Debug\PostThread.obj"
+]
+Creating command line "link.exe @C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP158.tmp"
+<h3>Output Window</h3>
+Compiling...
+PostThread.cpp
+Generating Code...
+Compiling...
+CntrItem.cpp
+Generating Code...
+Compiling...
+Ex32b.cpp
+Ex32bView.cpp
+Generating Code...
+Linking...
+
+
+
+<h3>Results</h3>
+Ex32b.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

@@ -1,0 +1,631 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>
+	
+        ClientSockThread.cpp&&ClientUrlThread.cpp
+        -
+        liu_hh1123的专栏
+        - CSDN博客
+</title>
+
+    <script type="text/javascript">
+        try { document.domain = "csdn.net"; } catch (ex) { }
+    </script>
+
+    <script src="/js/jquery.js" type="text/javascript"></script>
+
+    <script src="/js/SyntaxHighlighter/jquery.highlighter.js?v=20091222" type="text/javascript"></script>
+
+    <script src="/js/SyntaxHighlighter/highlighter.js?v=20091222" type="text/javascript"></script>
+
+    <script src="/js/common.js?v=20091222" type="text/javascript"></script>
+
+    <script src="http://counter.csdn.net/a/js/AreaCounter.js?v=20091222" type="text/javascript"></script>
+
+    <script type="text/javascript" src="/js/feedback.js?v=20100107"></script>
+
+    <script type="text/javascript" src="/js/relatedarticle.js?v=20091222"></script>
+
+<script type='text/javascript' src='http://partner.googleadservices.com/gampad/google_service.js'></script>
+<script type='text/javascript'>
+    GS_googleAddAdSenseService("ca-pub-1076724771190722");
+    GS_googleEnableAllServices();
+</script>
+<script type='text/javascript'>
+    GA_googleAddSlot("ca-pub-1076724771190722", "blog_postpage_72890");
+</script>
+<script type='text/javascript'>
+    GA_googleFetchAds();
+</script>
+
+
+    <link href="/css/skin/Cogitation/Cogitation_1.css?v=20091223" type="text/css" rel="stylesheet" media="all"/><link href="/css/csdn_favbykimi.css" type="text/css" rel="stylesheet" media="all" /><link rel="Shortcut Icon" href="http://profile.csdn.net/liu_hh1123/picture/1.ico"/><link href="http://feeds.feedsky.com/csdn.net/liu_hh1123" title="RSS" type="application/rss+xml" rel="alternate" /></head>
+<body id="defaultuser">
+    <div id="csdnblog_allwrap">
+        <div id="csdnblog_midwrap">
+            
+<script src="http://csdnimg.cn/pubnav/js/pub_topnav.js" type="text/javascript" ></script>
+<script type="text/javascript" src="http://counter.csdn.net/a/js/AreaCounter.js" ></script>
+<script type="text/javascript">
+    // 页面加载完毕，脚本开始执行
+    $(document).ready(function() {
+        ChangeUserState();
+        $("#notice").find("a").click(HideNoticeInfo);
+    });
+    
+    var userName = getCookie("activeUserName");
+    var isGuest = !userName || userName == "Guest";
+    var delay = 20 * 60 * 1000;
+    var timer = 0;
+
+    function ChangeUserState() {        
+        clearInterval(timer);
+        if (isGuest) {
+            HideNoticeInfo();
+        }
+        else {
+            RefreshNoticeInfo();
+            timer = setInterval( RefreshNoticeInfo, delay);
+        }
+    }
+    
+    var apiUrl = "/!handler/NoticeHandler.ashx?jsoncallback=?";
+    function RefreshNoticeInfo() {
+        $.getJSON(apiUrl + "&_t=" + Math.random(), function(result) {
+            if (result.noticeNum) {
+                newNoticeCount = result.noticeNum;
+                if (newNoticeCount <= 0) {
+                    $("#notice").hide();
+                }
+                else {
+                    $("#noticeCount").text(newNoticeCount);
+                    $("#notice").show();
+                }
+            }
+        });
+    }
+    
+    function HideNoticeInfo() {
+        $("#notice").hide();
+    }
+</script>
+
+<div id="csdnblog_header">
+    <h1>
+        <a href="http://blog.csdn.net/liu_hh1123">
+            liu_hh1123的专栏</a></h1>
+    <h2>
+        h_1373267@163.com</h2>
+    <ul id="personalnav">
+        <li style="display: none;" id="notice"><span class="newnotice"><a class="red" href="http://hi.csdn.net/space-notice.html" target="_blank" onclick='LogClickCount(this,216);'><span id="noticeCount"></span>条新通知</a></span></li>
+        <li style="display: none;"><a id="a_login" href="http://passport.csdn.net/UserLogin.aspx">
+            登录</a></li>
+        <li style="display: none;"><a id="a_register" href="http://passport.csdn.net/CSDNUserRegister.aspx"
+            target="_blank">注册</a></li>
+        <li style="display: none;"><a id="a_welcome" href="http://hi.csdn.net/" target="_blank">
+            欢迎</a></li>
+        <li style="display: none;"><a id="a_exit" href="http://writeblog.csdn.net/Signout.aspx">
+            退出</a></li>
+        <li style="display: none;"><a id="a_myblog" href="http://blog.csdn.net/">我的博客</a></li>
+        <li style="display: none;"><a id="a_configure" href="http://writeblog.csdn.net/configure.aspx"
+            target="_blank">配置</a></li>
+        <li style="display: none;"><a id="a_postedit" href="http://writeblog.csdn.net/PostEdit.aspx"
+            target="_blank">写文章</a></li>
+        <li style="display: none;"><a id="a_postlist" href="http://writeblog.csdn.net/PostList.aspx"
+            target="_blank">文章管理</a></li>
+        <li><a id="a_bloghome" href="http://blog.csdn.net" target="_blank">博客首页</a></li>
+    </ul>
+    <ul id="blogsearchsty">
+        <li>
+            <input id="inputSearch" type="text" class="bolgsearch" /></li>
+        <li class="selectsty">
+            <select name="Search:ddlSearchScope" id="Search_ddlSearchScope">
+                <option value="all">全站</option>
+                <option value="liu_hh1123">当前博客</option>
+            </select>
+        </li>
+        <li>
+            <input type="button" id="buttonSearch" value="搜索" class="bolggobtn" /></li>
+    </ul>
+    <ul id="menu">
+        <li><a href="http://hi.csdn.net/liu_hh1123" target="_blank">空间</a></li>
+        <li><a class="on" href="http://blog.csdn.net/liu_hh1123">博客</a></li>
+        <li><a href="http://hi.csdn.net/!s/friend/list/liu_hh1123" target="_blank">好友</a></li>
+        <li><a href="http://hi.csdn.net/!s/album/list/liu_hh1123" target="_blank">相册</a></li>
+        <li><a class="last" href="http://hi.csdn.net/!s/wall/to/liu_hh1123" target="_blank">
+            留言</a></li>
+    </ul>
+</div>
+
+<script type="text/javascript">
+    var CurrentUserName = 'liu_hh1123';
+</script>
+
+
+            
+<div id="csdnblog_sidebar">
+	<div class="gutter">
+		<div class="aboutauthor">
+			<dl>
+				<dt>用户操作</dt>
+				<dd class="middle">
+					<a href="http://hi.csdn.net/!s/wall/to/liu_hh1123" target="_blank">[留言]</a>&nbsp;
+					<a href="http://hi.csdn.net/!s/msg/to/liu_hh1123" target="_blank">[发消息]</a>&nbsp;
+					<a href="http://hi.csdn.net/!s/friend/add/liu_hh1123" target="_blank">[加为好友]</a>&nbsp;
+				</dd>
+				<span id="userInfo"></span>
+				<span id="SubscriptionList">
+					<dt>订阅我的博客</dt>
+					<dd>
+						<a href="http://feeds.feedsky.com/csdn.net/liu_hh1123">
+							<img border="0" alt="XML聚合" src="http://img.feedsky.com/feeds/csdn.net/liu_hh1123/sc/gif"/>
+						</a>&nbsp;&nbsp;
+						<a href="http://feeds.feedsky.com/csdn.net/liu_hh1123" target="_blank">
+							<img border="0" alt="FeedSky" src="/images/feedsky.gif"/>
+						</a>
+					</dd>
+					<dd>
+						<a href="http://www.xianguo.com/subscribe.php?url=http://feeds.feedsky.com/csdn.net/liu_hh1123" target="_blank">
+							<img border="0" alt="订阅到鲜果" src="/images/rss_xianguo.jpg"/>
+						</a>
+					</dd>
+					<dd>
+						<a href="http://fusion.google.com/add?feedurl=http://feeds.feedsky.com/csdn.net/liu_hh1123" target="_blank">
+							<img border="0" alt="订阅到Google" src="/images/rss_google.gif"/>
+						</a>
+					</dd>
+					<dd>
+						<a href="http://www.zhuaxia.com/add_channel.php?url=http://feeds.feedsky.com/csdn.net/liu_hh1123" target="_blank">
+							<img border="0" alt="订阅到抓虾" src="/images/rss_zhuaxia.gif"/>
+						</a>
+					</dd>
+				</span>
+				<dt>
+					<span class="floatright" style="display:none;"><a class="a_edit" href="http://writeblog.csdn.net/configure.aspx" target="_blank">[编辑]</a></span>liu_hh1123的公告
+				</dt>
+				<dd></dd>
+				<dt><span class="floatright" style="display:none;"><a class="a_edit" href="http://writeblog.csdn.net/EditCategories.aspx?catID=1" target="_blank">[编辑]</a></span>文章分类</dt>
+				<dd>
+					<div class="publiclist_sidebar">
+						<ul></ul>
+					</div>
+				</dd>
+				
+				
+				<dt>存档</dt>
+				<dd>
+					<div class="publiclist_sidebar">
+						<ul><li><a href="/liu_hh1123/archive/2010/07.aspx">2010年07月(3)</a></li><li><a href="/liu_hh1123/archive/2010/06.aspx">2010年06月(41)</a></li><li><a href="/liu_hh1123/archive/2010/05.aspx">2010年05月(5)</a></li></ul>
+					</div>
+				</dd>
+			</dl>
+		</div>
+	</div>
+</div>
+
+            
+	<style type="text/css">
+/*channel style*/
+.chal {font-family:Verdana,Helvetica,Arial,sans-serif;font-size:12px;font-weight:normal;}
+.chal .conts span.adv{font-weight:bold; width:300px; height:auto; float:right; text-align:righ; padding:5px 10px 1px 0; line-height:18px; text-align:right; font-weight:bold}
+.chal .conts span.adv img{width:300px; height:60px; padding:3px 0 0 0;}
+.chal .conts {clear: both; overflow: hidden; width: auto;  border:1px solid #ccc; padding:0; text-align:left;}
+.chal .conts #ann #annbody{clear:both;overflow:hidden;width: auto;border-top:1px dashed #AACBEE;margin-bottom:5px;height:18px;padding:0;text-align:left;}
+.chal .conts #ann #annbodylis{width:auto; margin:0 10px 0 10px; padding:0; list-style:none;}
+.chal .conts #ann #annbodylis li{width:100%; float:left; line-height:150%; text-align:left; padding:0; margin:0; color:#004797;}
+.chal .conts #ann #annbodylis li a{color:#f00;}
+.chal .conts #ann #annbodylis li.cen{text-align:center;}
+.chal .conts #ann #annbodylis li.rig{text-align:right;}
+
+.default_contents h4.notice {background:url("http://c.csdn.net/bbs/f/i/l/pic04.gif") no-repeat scroll 4px 10px #FFFFDD;}
+/*end */
+
+/*20100712 jinweiwei update*/
+.commentnew dl dd.recruit{width:200px;float: left; text-align: left; margin-left: 15px; display:inline; border:1px solid #C1AE9E; padding:1px;}
+.commentnew dl dd.recruit h5{background:#E0DBD3; color:#47381C; font-size:12px; height:24px; line-height:24px; padding-left:10px;}
+
+.commentnew dl dd.recruit ul{padding:0; margin:10px 5px; height:252px; overflow:hidden; width:auto; float:none;}
+.commentnew dl dd.recruit ul li{list-style:none; background:url(http://c.csdn.net/www/images/blog/dot_2.gif) left 7px no-repeat; margin-left:5px; padding-left:12px; margin-bottom:6px; height:36px; overflow:hidden;}
+
+.commentnew dl dd ul{width:474px; float:left; margin:0; padding:0 0 10px 0;}
+.commentnew dl dd ul li.left{width:70px; margin:0 0 0 12px; display:inline; padding:0; float:left;text-align:left;  line-height:18px; }
+*+html .commentnew dl dd ul li.left{line-height:20px;}
+*html .commentnew dl dd ul li.left{line-height:20px;}
+.commentnew dl dd ul li.lefttop{width:70px; margin:0 0 0 12px; display:inline; float:left;padding:5px 0; }
+.commentnew dl dd ul li.right{width:380px; margin:0; padding:0 12px 0 0; display:inline; float:left; text-align:left; line-height:18px;}
+.commentnew dl dd ul li.right img.brow{float:left; padding:0px 4px;}
+.commentnew dl dd ul li.right .textarea{width:378px; float:left; height:150px; border:1px solid #c3c3c3; padding:3px; margin:0; vertical-align:top;}
+.commentnew dl dd ul li.right .input{width:120px; float:left; height:18px;line-height:18px;  border:1px solid #c3c3c3; padding:0 2px; margin:0; vertical-align:middle;}
+.commentnew dl dd ul li.right span.left{width:auto;float:left; text-align:left;}
+.commentnew dl dd ul li.right span.right{width:100px;float:right; text-align:right;}
+.commentnew dl dd ul li.right span a{color:#f00}
+.commentnew dl dd ul li.right span a.red:link, a.red:visited, a.red:hover, a.red:active{color:#f00}
+.commentnew dl dd ul li.right em{color:#466bbb;font-style:noraml;}
+.commentnew dl dd ul li.right a img.btn{padding:0 0 3px 0; width:68px; height:21px;}
+.commentnew dl dd ul li.right .checkbox{padding:0; margin:0;vertical-align:middle; border:0;}
+	</style>
+<div id="csdnblog_content">
+	<div class="gutter">
+		<div class="chal default_contents" id="chal" style="display:none;">
+			<h4 class="conts notice" style="height:20px;">
+				<span style="float:left;font-weight:bold;margin:2px 0 0 0;">公告：</span>
+				<div id="ann" style="width:500px;float:left;">
+					<div id="annbody" style="border-top: 0px none;">
+						<ul id="annbodylis">
+							<script src="http://ping.csdn.net/rsscache.aspx?rssurl=http://temp.csdn.net/Feed.aspx?Column=5e073cfd-3db5-4e7e-8e6e-1da4425ab6e4&amp;count=3&amp;area=224" type="text/javascript"></script>
+						</ul>
+					</div>
+				</div>
+				<span><a href="http://forum.csdn.net/SList/blogSupport" target="_blank">[意见反馈]</a><a href="http://blog.csdn.net/blogdevteam" target="_blank">[官方博客]</a></span>
+			</h4>
+		</div>
+
+		<div class="default_contents">
+			<div class="user_article">
+
+				<script type="text/javascript" src="/js/feedbackcount.js"></script>
+
+				<h1 class="title_txt">
+					<img src="/images/authorship.gif" border="0" width="15" height="15" alt="原创"/>&nbsp;
+					ClientSockThread.cpp&amp;&amp;ClientUrlThread.cpp
+					<cite class="fav_csdnstylebykimi"><a href="JavaScript:d=document;t=d.selection?(d.selection.type!='None'?d.selection.createRange().text:''):(d.getSelection?d.getSelection():'');void(saveit=window.open('http://wz.csdn.net/storeit.aspx?t='+escape(d.title)+'&u='+escape(d.location.href)+'&c='+escape(t),'saveit','scrollbars=no,width=590,height=300,left=75,top=20,status=no,resizable=yes'));saveit.focus();"
+						class="fav_csdnstylebykimi" title="收藏到我的网摘中，并分享给我的朋友">收藏</a> </cite>
+					
+				</h1>
+				<div class="blogstory">
+
+					<script type="text/javascript">
+						document.body.oncopy = function () {
+							if (window.clipboardData) {
+								setTimeout(function () {
+									var text = clipboardData.getData("text");
+									if (text && text.length > 300) {
+										text = text + "\r\n\n本文来自CSDN博客，转载请标明出处：" + location.href;
+										clipboardData.setData("text", text);
+									}
+								}, 100);
+							}
+						}
+					</script>
+
+					<script type="text/javascript">						function StorePage() { d = document; t = d.selection ? (d.selection.type != 'None' ? d.selection.createRange().text : '') : (d.getSelection ? d.getSelection() : ''); void (keyit = window.open('http://www.365key.com/storeit.aspx?t=' + escape(d.title) + '&u=' + escape(d.location.href) + '&c=' + escape(t), 'keyit', 'scrollbars=no,width=475,height=575,left=75,top=20,status=no,resizable=yes')); keyit.focus(); }</script>
+
+					<p>// clientsockthread.cpp (uses Winsock calls only)</p>
+<p>#include &lt;stdafx.h&gt;<br />#include "blocksock.h"<br />#include "utility.h"<br />#define MAXBUF 50000</p>
+<p>CString g_strIPClient;<br />CString g_strProxy = "ITGPROXY";<br />BOOL g_bUseProxy = FALSE;</p>
+<p>UINT ClientSocketThreadProc(LPVOID pParam)<br />{<br />&nbsp;// sends a blind request, followed by a request for a specific URL<br />&nbsp;CHttpBlockingSocket sClient;<br />&nbsp;char* buffer = new char[MAXBUF];<br />&nbsp;int nBytesReceived = 0;<br />&nbsp;// We're doing a blind GET, but we must provide server name if we're using a proxy.<br />&nbsp;// A blind GET is supposed to retrieve the server's default HTML document.<br />&nbsp;// Some servers don't have a default document but return a document name in the Location header.<br />&nbsp;char request[] = "GET %s%s%s HTTP/1.0\r\n";<br />&nbsp;char headers[] =<br />&nbsp;&nbsp;"User-Agent: Mozilla/1.22 (Windows; U; 32bit)\r\n"<br />&nbsp;&nbsp;"Accept: */*\r\n"<br />&nbsp;&nbsp;"Accept: image/gif\r\n"<br />&nbsp;&nbsp;"Accept: image/x-xbitmap\r\n"<br />&nbsp;&nbsp;"Accept: image/jpeg\r\n"<br />// following line tests server's ability to not send the URL<br />//&nbsp;&nbsp;"If-Modified-Since: Wed, 11 Sep 1996 20:23:04 GMT\r\n"<br />&nbsp;&nbsp;"\r\n"; // need this<br />&nbsp;CSockAddr saServer, saPeer, saTest, saClient;<br />&nbsp;try {<br />&nbsp;&nbsp;sClient.Create();<br />&nbsp;&nbsp;if(!g_strIPClient.IsEmpty()) {<br />&nbsp;&nbsp;&nbsp;// won't work if network is assigning us our IP address<br />&nbsp;&nbsp;&nbsp;// good only for intranets where client computer has several IP addresses<br />&nbsp;&nbsp;&nbsp;saClient = CSockAddr(g_strIPClient);<br />&nbsp;&nbsp;&nbsp;sClient.Bind(saClient);<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;if(g_bUseProxy) {<br />&nbsp;&nbsp;&nbsp;saServer = CBlockingSocket::GetHostByName(g_strProxy, 80);<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;else {<br />&nbsp;&nbsp;&nbsp;if(g_strServerIP.IsEmpty()) {<br />&nbsp;&nbsp;&nbsp;&nbsp;saServer = CBlockingSocket::GetHostByName(g_strServerName, g_nPort);<br />&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;else {<br />&nbsp;&nbsp;&nbsp;&nbsp;saServer = CSockAddr(g_strServerIP, g_nPort);<br />&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;sClient.Connect(saServer);<br />&nbsp;&nbsp;sClient.GetSockAddr(saTest);<br />&nbsp;&nbsp;TRACE("SOCK CLIENT: GetSockAddr = %s, %d\n", saTest.DottedDecimal(), saTest.Port());<br />&nbsp;&nbsp;if(g_bUseProxy) {<br />&nbsp;&nbsp;&nbsp;wsprintf(buffer, request, "http://" , (const char*) g_strServerName, g_strFile);<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;else {<br />&nbsp;&nbsp;&nbsp;wsprintf(buffer, request, "", "", g_strFile);<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;sClient.Write(buffer, strlen(buffer), 10);<br />&nbsp;&nbsp;sClient.Write(headers, strlen(headers), 10);<br />&nbsp;&nbsp;// read all the server's response headers<br />&nbsp;&nbsp;do {<br />&nbsp;&nbsp;&nbsp;nBytesReceived = sClient.ReadHttpHeaderLine(buffer, MAXBUF, 10);<br />&nbsp;&nbsp;&nbsp;TRACE("SOCK CLIENT: %s", buffer);<br />&nbsp;&nbsp;} while(strcmp(buffer, "\r\n"));<br />&nbsp;&nbsp;// read the server's file<br />&nbsp;&nbsp;nBytesReceived = sClient.ReadHttpResponse(buffer, MAXBUF, 10);<br />&nbsp;&nbsp;TRACE("SOCK CLIENT: bytes received = %d\n", nBytesReceived);<br />&nbsp;&nbsp;if(nBytesReceived == 0) {<br />&nbsp;&nbsp;&nbsp;AfxMessageBox("No response recevied. Bad URL?");<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;else {<br />&nbsp;&nbsp;&nbsp;buffer[nBytesReceived] = '\0';<br />&nbsp;&nbsp;&nbsp;::MessageBox(::GetTopWindow(::GetDesktopWindow()), buffer, "WINSOCK CLIENT", MB_OK);<br />&nbsp;&nbsp;}</p>
+<p>&nbsp;&nbsp;// could do another request on sClient by calling Close, then Create, etc.<br />&nbsp;}<br />&nbsp;catch(CBlockingSocketException* e) {<br />&nbsp;&nbsp;LogBlockingSocketException(pParam, "CLIENT:", e);<br />&nbsp;&nbsp;e-&gt;Delete();<br />&nbsp;}<br />&nbsp;sClient.Close();<br />&nbsp;delete [] buffer;<br />&nbsp;return 0;<br />}</p>
+
+<p>//***************************************</p>
+
+<p>// clienturlthread.cpp (uses CInternetSession::OpenURL)</p>
+<p>#include &lt;stdafx.h&gt;<br />#include "utility.h"<br />#define MAXBUF 50000</p>
+<p>CString g_strURL = "http://";</p>
+<p>UINT ClientUrlThreadProc(LPVOID pParam)<br />{<br />&nbsp;char* buffer = new char[MAXBUF];<br />&nbsp;UINT nBytesRead = 0;</p>
+<p>&nbsp;CInternetSession session; // can't get status callbacks for OpenURL<br />&nbsp;CStdioFile* pFile1 = NULL; // could call ReadString to get 1 line<br />&nbsp;try {<br />&nbsp;&nbsp;pFile1 = session.OpenURL(g_strURL, 0, INTERNET_FLAG_TRANSFER_BINARY |<br />&nbsp;&nbsp;&nbsp;&nbsp;INTERNET_FLAG_KEEP_CONNECTION);<br />&nbsp;&nbsp;// if OpenURL fails, we won't get past here<br />&nbsp;&nbsp;nBytesRead = pFile1-&gt;Read(buffer, MAXBUF - 1);<br />&nbsp;&nbsp;buffer[nBytesRead] = '\0'; // necessary for message box<br />&nbsp;&nbsp;char temp[100];<br />&nbsp;&nbsp;if(pFile1-&gt;Read(temp, 100) != 0) { // makes caching work if read complete<br />&nbsp;&nbsp;&nbsp;AfxMessageBox("File overran buffer -- not cached");<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;::MessageBox(::GetTopWindow(::GetDesktopWindow()), buffer, "URL CLIENT", MB_OK);<br />&nbsp;}<br />&nbsp;catch(CInternetException* e) {<br />&nbsp;&nbsp;LogInternetException(pParam, e);<br />&nbsp;&nbsp;e-&gt;Delete();<br />&nbsp;}<br />&nbsp;if(pFile1) delete pFile1;<br />&nbsp;delete [] buffer;<br />&nbsp;return 0;<br />}</p>
+					<p class="right articalinfo">
+						发表于 @
+						2010年06月15日　16:54:00&nbsp;&#124; <a id="a_comment" href="#FeedBack" title="评论">评论( <span
+							id="FeedbackCount_5672532">loading...</span>
+
+							<script type="text/javascript">
+								AddFeedbackCountStack("5672532")
+							</script>
+
+							) </a>&#124; <span style="display: none;"><a class="a_edit" href="http://writeblog.csdn.net/PostEdit.aspx?entryId=5672532"
+								title="编辑">编辑</a>&#124</span> <a href='m&#97;ilto&#58;webmaster&#64;csdn&#46;net?subject=Article%20Report!!!&body=Author:liu_hh1123%0D%0AURL:http://blog.csdn.net/ArticleContent.aspx?UserName=liu_hh1123&Entryid=5672532'>
+									举报</a>&#124; <cite class="fav_csdnstylebykimi"><a href="JavaScript:d=document;t=d.selection?(d.selection.type!='None'?d.selection.createRange().text:''):(d.getSelection?d.getSelection():'');void(saveit=window.open('http://wz.csdn.net/storeit.aspx?t='+escape(d.title)+'&u='+escape(d.location.href)+'&c='+escape(t),'saveit','scrollbars=no,width=590,height=300,left=75,top=20,status=no,resizable=yes'));saveit.focus();"
+										class="fav_csdnstylebykimi" title="收藏到我的网摘中，并分享给我的朋友">收藏</a> </cite>
+					</p>
+					<span id="Post.ascx_ViewPost_PreviousAndNextEntriesDown">
+						<h3 class="pagego">
+							<a href="/liu_hh1123/archive/2010/06/15/5672520.aspx">旧一篇:blockSock.cpp&amp;ClientInerThread</a>&nbsp;|&nbsp;<a href="/liu_hh1123/archive/2010/06/15/5672540.aspx">新一篇:ex34a.cpp&amp;&amp;ex34aDoc.cpp&amp;&amp;ex34aView.cpp</a></h3>
+					</span>
+					<div style="text-align: left;">
+						<!-- ca-pub-1076724771190722/blog_postpage_72890 -->
+						<script type='text/javascript'>
+							GA_googleFillSlot("blog_postpage_72890");
+						</script>
+					</div>
+					<div class="mutualitys">
+						<dl>
+							<dt><span><a onclick="LogClickCount(this,215)" target="_blank" href="http://blog.csdn.net">
+								查看最新精华文章 请访问博客首页</a></span>相关文章</dt>
+						</dl>
+					</div>
+				</div>
+			</div>
+			<a name="FeedBack"></a>
+
+			<script type="text/javascript">
+				var CurrentEntryId = '5672532';
+				var CurArticleTitle = 'ClientSockThread.cpp&amp;&amp;ClientUrlThread.cpp';
+				var AllowComment = 'True';
+				var AllowAnonymousComment = /^true$/i.test('False');
+			</script>
+
+			<div class="commentslist" id="commentslist">
+			</div>
+
+			<script type="text/javascript" src="/js/CsdnDialog.js"></script>
+
+			<script type="text/javascript">
+				function ChangeIdentifyingCode() {
+					var url = $('#imgValidationCode').attr('src');
+					if (!(/&d=[\d\.]+$/).test(url)) url += "&d=1";
+					url = url.replace(/&d=[\d\.]+$/, "&d=" + Math.random());
+					$('#imgValidationCode').attr('src', url);
+				}
+
+				function OpenLoginDialog() {
+					element = document.getElementById("loginBtn");
+					var position = absolutePoint(element);
+
+					var dialogTop = position.y - 400;
+					var dialogLeft = position.x - 220;
+					var dialogWidth = 435;
+					var dialogHeight = 420;
+
+					showWindow({ url: 'http://passport.csdn.net/UserLogin.aspx?show=replyLogin&from=http%3a%2f%2fblog.csdn.net%2f!tools%2fLoginSussess.aspx'
+						, title: '登录'
+						, top: dialogTop
+						, left: dialogLeft
+						, width: dialogWidth
+						, height: dialogHeight
+					});
+				}
+
+				function closeDialog(needRefresh) {
+					closeWindow();
+					if (needRefresh) {
+						var url = location.href;
+						if ((/\?/g).test(url))
+							url = url.replace(/\?.*$/g, ("?" + Math.random()).replace(/\./g, ""));
+						else url += ("?" + Math.random()).replace(/\./g, "");
+						location.href = url;
+					}
+					$("#SubmitFeedback").unbind("click");
+					$("#SubmitFeedback").bind("click", PostContent);
+				}
+
+				function absolutePoint(element) {
+					var result = { x: element.offsetLeft, y: element.offsetTop };
+					element = element.offsetParent;
+					while (element) {
+						result.x += element.offsetLeft;
+						result.y += element.offsetTop;
+						element = element.offsetParent;
+					}
+					return result;
+				}
+
+				function startmarquee(lh, speed, delay, index) {
+					var t;
+					var p = false;
+					var o = document.getElementById("marqueebox" + index);
+					o.innerHTML += o.innerHTML;
+					o.onmouseover = function () { p = true }
+					o.onmouseout = function () { p = false }
+					o.scrollTop = 0;
+					function start() {
+						t = setInterval(scrolling, speed);
+						if (!p) o.scrollTop += 2;
+					}
+					function scrolling() {
+						if (o.scrollTop % lh != 0) {
+							o.scrollTop += 2;
+							if (o.scrollTop >= o.scrollHeight / 2) o.scrollTop = 0;
+						} else {
+							clearInterval(t);
+							setTimeout(start, delay);
+						}
+					}
+					setTimeout(start, delay);
+				}
+
+				function addEventHandler(target, type, func) {
+					if (target.addEventListener)
+						target.addEventListener(type, func, false);
+					else if (target.attachEvent)
+						target.attachEvent("on" + type, func);
+					else target["on" + type] = func;
+				}
+
+				addEventHandler(window, "load", function () {
+					startmarquee(42, 50, 3000, 0);
+				});
+			</script>
+
+			<div class="commentnew">
+				<dl>
+					<dt>
+						<ul>
+							<li class="left">发表评论</li>
+
+							<script src="http://svc.csdn.net/ColumnService/RandomColumnContentJS.aspx?id=835ac618-5f1a-41b2-b4dc-716234f8d656&c=1&t=li"
+								type="text/javascript"></script>
+
+						</ul>
+					</dt>
+					<dd>
+						<ul>
+							<li class="lefttop">表 情：</li>
+							<li class="right"><a href="#" onclick="return false;">
+								<img title="顶" alt="顶" class="brow" src="/images/emotions/e01.gif" /></a> <a href="#"
+									onclick="return false;">
+									<img title="砸" alt="砸" class="brow" src="/images/emotions/e02.gif" /></a> <a href="#"
+										onclick="return false;">
+										<img title="棒" alt="棒" class="brow" src="/images/emotions/e03.gif" /></a>
+								<a href="#" onclick="return false;">
+									<img title="大笑" alt="大笑" class="brow" src="/images/emotions/e04.gif" /></a>
+								<a href="#" onclick="return false;">
+									<img title="愤怒" alt="愤怒" class="brow" src="/images/emotions/e05.gif" /></a>
+								<a href="#" onclick="return false;">
+									<img title="大哭" alt="大哭" class="brow" src="/images/emotions/e06.gif" /></a>
+								<a href="#" onclick="return false;">
+									<img title="疑问" alt="疑问" class="brow" src="/images/emotions/e07.gif" /></a>
+								<a href="#" onclick="return false;">
+									<img title="汗" alt="汗" class="brow" src="/images/emotions/e08.gif" /></a> <a href="#"
+										onclick="return false;">
+										<img title="呕吐" alt="呕吐" class="brow" src="/images/emotions/e09.gif" /></a>
+								<a href="#" onclick="return false;">
+									<img title="送花" alt="送花" class="brow" src="/images/emotions/e10.gif" /></a>
+							</li>
+						</ul>
+						<ul>
+							<li class="left">评论内容：</li>
+							<li class="right">
+								<textarea id="content" class="textarea" onkeydown="if(event.ctrlKey && event.keyCode==13){return $('#SubmitFeedback').click();}"></textarea>
+							</li>
+						</ul>
+						<div>
+							<ul>
+								<li class="left">用 户 名：</li>
+								<li class="right"><span id="loginTips" class="right" style="display: none;"><a href="javascript:void(0);"
+									onclick="OpenLoginDialog(this);return false;" class="red" id="loginBtn">登录</a> <a
+										href="http://passport.csdn.net/CSDNUserRegister.aspx" target="_blank" class="red">
+										注册</a> </span><span class="right" style="display: none;">
+											<input type="checkbox" id="anonymous" class="checkbox" />匿名评论 </span><span id="commentUser"
+												class="left"></span></li>
+							</ul>
+						</div>
+						<ul style="display: none;">
+							<li class="left">验 证 码：</li>
+							<li class="right">
+								<input id="code" type="text" class="input" />
+								<a href="javascript:ChangeIdentifyingCode()">
+									<img id="imgValidationCode" alt="验证码" style="vertical-align: middle;" src="http://comments.blog.csdn.net/AntiBotImage.ashx?entryId=5672532" /></a>
+								<a href="javascript:ChangeIdentifyingCode()">重新获得验证码</a> </li>
+						</ul>
+						<ul>
+							<li class="left">&nbsp;</li>
+							<li class="right">
+								<input id="SubmitFeedback" type="button" value="发表评论" class="submitbtn" />
+								
+							</li>
+						</ul>
+					</dd>
+					<dd id="recommended" class="recruit">
+						<h5>热门招聘职位</h5>
+						<ul id="marqueebox0">
+							<script src="http://ping.csdn.net/rsscache.aspx?rssurl=http://temp.csdn.net/Feed.aspx?Column=3550748a-ac9a-4ff1-ba62-3739fce143ba&amp;count=12&amp;area=226" type="text/javascript"></script>
+						</ul>
+					</dd>
+				</dl>
+			</div>
+
+<script type="text/javascript">
+	function addEventHandler(target, type, func) {
+		if (target.addEventListener)
+			target.addEventListener(type, func, false);
+		else if (target.attachEvent)
+			target.attachEvent("on" + type, func);
+		else target["on" + type] = func;
+	}
+	addEventHandler(window, "load", function () {
+		({
+			anndelay: 5000,
+			annst: 0,
+			annstop: 0,
+			annrowcount: 0,
+			anncount: 0,
+			annrows: [],
+			annstatus: 0,
+			announcementScroll: function () {
+				var self = this;
+				var annlis = self.annbody.getElementsByTagName("li");
+				if (self.annstop) {
+					self.annst = setTimeout(function () { self.announcementScroll(); }, self.anndelay);
+					return;
+				}
+				if (!self.annst) {
+					var lasttop = -1;
+					for (var i = 0; i < annlis.length; i++) {
+
+						if (lasttop != annlis[i].offsetTop) {
+							if (lasttop == -1) {
+								lasttop = 0;
+							}
+							self.annrows[self.annrowcount] = annlis[i].offsetTop - lasttop;
+							self.annrowcount++;
+						}
+						lasttop = annlis[i].offsetTop;
+					}
+
+					if (self.annrows.length == 1) {
+						self.ann.onmouseover = self.ann.onmouseout = null;
+					} else {
+						self.annrows[self.annrowcount] = self.annrows[1];
+						self.annbodylis.innerHTML += self.annbodylis.innerHTML;
+						self.annst = setTimeout(function () { self.announcementScroll(); }, self.anndelay);
+					}
+					self.annrowcount = 1;
+					return;
+				}
+
+				if (self.annrowcount >= self.annrows.length) {
+					self.annbody.scrollTop = 0;
+					self.annrowcount = 1;
+					self.annst = setTimeout(function () { self.announcementScroll(); }, self.anndelay);
+				} else {
+					self.anncount = 0;
+					self.announcementScrollnext(self.annrows[self.annrowcount]);
+				}
+			},
+			announcementScrollnext: function (time) {
+				var self = this;
+				self.annbody.scrollTop++;
+				self.anncount++;
+				if (self.anncount != time) {
+					self.annst = setTimeout(function () {
+						self.announcementScrollnext(time);
+					}, 10);
+				} else {
+					self.annrowcount++;
+					self.annst = setTimeout(function () { self.announcementScroll(); }, self.anndelay);
+				}
+			},
+			play: function () {
+				var self = this;
+				self.annbody = document.getElementById('annbody');
+				if (!self.annbody) return;
+				self.ann = document.getElementById('ann');
+				self.annbodylis = document.getElementById('annbodylis');
+				self.chal = document.getElementById('chal');
+				if (!self.annbodylis.getElementsByTagName("li").length) return;
+				self.chal.style.display = "";
+				self.ann.onmouseover = function () { this.annstop = 1; };
+				self.ann.onmouseout = function () { this.annstop = 0; };
+				self.announcementScroll();
+			}
+		}).play();
+	});
+</script>
+
+<script type="text/javascript">
+	LoadFeedbackCount();
+	document.write("<img src='http://counter.csdn.net/pv.aspx?id=24' border=0 width=0 height=0>");
+</script>
+		</div>
+	</div>
+</div>
+
+            
+<script src="http://csdnimg.cn/pubfooter/js/publib_footer.js" type="text/javascript"></script>
+<script type="text/javascript" src="http://www.csdn.net/ui/scripts/Csdn/counter.js"></script>
+<script type="text/javascript" src="http://www.google-analytics.com/ga.js"></script>
+<script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-2688088-9");
+        pageTracker._trackPageview();
+    } catch (err) { }
+</script>
+
+
+        </div>
+    </div>
+    <img src='/!handler/count.aspx?blogid=829081&entryid=5672532&title=ClientSockThread.cpp&amp;&amp;ClientUrlThread.cpp&url=http://www.baidu.com/s?wd=ClientUrlThreadProc&amp;n=2' height=0 width=0>
+</body>
+</html>
+

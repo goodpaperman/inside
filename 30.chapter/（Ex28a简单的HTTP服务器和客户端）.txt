@@ -1,0 +1,1008 @@
+VC技术内幕第6版笔记（14）- Internet基础（Ex28a简单的HTTP服务器和客户端） - 奕天空间 - sjg2001414 - 和讯博客http://hexun.com/sjg2001414 
+> 复制 > 收藏 | 手机看个人门户 登录 | 注册 | 和讯博客 | 和讯首页奕天空间
+sjg2001414's Blog个人门户博客微博相册音乐转帖邮箱朋友圈好友留言进入我的家联系主人发送私信 | 给主人留言 | 送小礼物 | 关注主人 | 
+加为好友 | 进入Ta的家主人：sjg2001414
+ 
+[发送私信] [加为好友] [关注]
+
+快速链接
+[和讯博客]
+[发表文章]
+[博客设置]
+[文章管理]
+ 搜索
+
+
+ 
+分类
+手机、嵌入式设备等非B/S编程疾病与健康教学相关外汇安全病毒数据完整我的学习Ruby和P...生活之养育孩子生活之饮食计算机服务器知识与类...计算机网页设计与编程
+友情链接
+VC技术内幕第6版笔记（14）- Internet基础（Ex28a简单的HTTP服务器和客户端） [原创 2009-06-07 12:11:38]    
+ 字号：大 中 小 
+
+configuration菜单用来配置服务器的有关参数。start 
+server菜单用来启动服务器。Request有两种客户端请求方式，即winsock或wininet实现客户。
+
+阻塞式套接字的功能主要是在BlockSock.h和BlockSock.cpp中实现的，主要包括CSockAddr类（处理地址）、CBlockingSocketException类（处理异常）、CBlockingSocket类（实现阻塞式套接字）、CHttpBlockingSocket类（实现阻塞式HTTP）
+BlockSock.h如下：
+// blocksock.h
+// needs winsock.h in the precompiled headers
+typedef const struct sockaddr* LPCSOCKADDR;
+class CBlockingSocketException : public CException
+{
+ DECLARE_DYNAMIC(CBlockingSocketException)
+public:
+// Constructor
+ CBlockingSocketException(char* pchMessage);
+public:
+ ~CBlockingSocketException() {}
+ virtual BOOL GetErrorMessage(LPTSTR lpstrError, UINT nMaxError,
+  PUINT pnHelpContext = NULL);
+private:
+ int m_nError;
+ CString m_strMessage;
+};
+extern void LogBlockingSocketException(LPVOID pParam, char* pch, 
+CBlockingSocketException* pe);
+class CSockAddr : public sockaddr_in {
+public:
+ // constructors
+ CSockAddr()
+  { sin_family = AF_INET;
+    sin_port = 0;
+    sin_addr.s_addr = 0; } // Default
+ CSockAddr(const SOCKADDR& sa) { memcpy(this, &sa, sizeof(SOCKADDR)); }
+ CSockAddr(const SOCKADDR_IN& sin) { memcpy(this, &sin, sizeof(SOCKADDR_IN)); }
+ CSockAddr(const ULONG ulAddr, const USHORT ushPort = 0) // parms are host byte 
+ordered
+  { sin_family = AF_INET;
+    sin_port = htons(ushPort);
+       sin_addr.s_addr = htonl(ulAddr); }
+ CSockAddr(const char* pchIP, const USHORT ushPort = 0) // dotted IP addr string
+  { sin_family = AF_INET;
+    sin_port = htons(ushPort);
+    sin_addr.s_addr = inet_addr(pchIP); } // already network byte ordered
+ // Return the address in dotted-decimal format
+ CString DottedDecimal()
+  { return inet_ntoa(sin_addr); } // constructs a new CString object
+ // Get port and address (even though they're public)
+ USHORT Port() const
+  { return ntohs(sin_port); }
+ ULONG IPAddr() const
+  { return ntohl(sin_addr.s_addr); }
+ // operators added for efficiency
+ const CSockAddr& operator=(const SOCKADDR& sa)
+  { memcpy(this, &sa, sizeof(SOCKADDR));
+    return *this; }
+ const CSockAddr& operator=(const SOCKADDR_IN& sin)
+  { memcpy(this, &sin, sizeof(SOCKADDR_IN));
+    return *this; }
+ operator SOCKADDR()
+  { return *((LPSOCKADDR) this); }
+ operator LPSOCKADDR()
+  { return (LPSOCKADDR) this; }
+ operator LPSOCKADDR_IN()
+  { return (LPSOCKADDR_IN) this; }
+};
+// member functions truly block and must not be used in UI threads
+// use this class as an alternative to the MFC CSocket class
+class CBlockingSocket : public CObject
+{
+ DECLARE_DYNAMIC(CBlockingSocket)
+public:
+ SOCKET m_hSocket;
+ CBlockingSocket() { m_hSocket = NULL; }
+ void Cleanup();
+ void Create(int nType = SOCK_STREAM);
+ void Close();
+ void Bind(LPCSOCKADDR psa);
+ void Listen();
+ void Connect(LPCSOCKADDR psa);
+ BOOL Accept(CBlockingSocket& s, LPSOCKADDR psa);
+ int Send(const char* pch, const int nSize, const int nSecs);
+ int Write(const char* pch, const int nSize, const int nSecs);
+ int Receive(char* pch, const int nSize, const int nSecs);
+ int SendDatagram(const char* pch, const int nSize, LPCSOCKADDR psa, 
+  const int nSecs);
+ int ReceiveDatagram(char* pch, const int nSize, LPSOCKADDR psa, 
+  const int nSecs);
+ void GetPeerAddr(LPSOCKADDR psa);
+ void GetSockAddr(LPSOCKADDR psa);
+ static CSockAddr GetHostByName(const char* pchName, 
+  const USHORT ushPort = 0);
+ static const char* GetHostByAddr(LPCSOCKADDR psa);
+ operator SOCKET()
+  { return m_hSocket; }
+};
+class CHttpBlockingSocket : public CBlockingSocket
+{
+public:
+ DECLARE_DYNAMIC(CHttpBlockingSocket)
+ enum {nSizeRecv = 1000}; // max receive buffer size (> hdr line length)
+ CHttpBlockingSocket();
+ ~CHttpBlockingSocket();
+ int ReadHttpHeaderLine(char* pch, const int nSize, const int nSecs);
+ int ReadHttpResponse(char* pch, const int nSize, const int nSecs);
+private:
+ char* m_pReadBuf; // read buffer
+ int m_nReadBuf; // number of bytes in the read buffer
+};
+BlockSock.cpp 如下：
+// blocksock.cpp (CBlockingSocketException, CBlockingSocket, 
+CHttpBlockingSocket)
+#include <stdafx.h>
+#include "blocksock.h"
+// Class CBlockingSocketException
+IMPLEMENT_DYNAMIC(CBlockingSocketException, CException)
+CBlockingSocketException::CBlockingSocketException(char* pchMessage)
+{
+ m_strMessage = pchMessage;
+ m_nError = WSAGetLastError();
+}
+BOOL CBlockingSocketException::GetErrorMessage(LPTSTR lpstrError, UINT 
+nMaxError,
+  PUINT pnHelpContext /*= NULL*/)
+{
+ char text[200];
+ if(m_nError == 0) {
+  wsprintf(text, "%s error", (const char*) m_strMessage);
+ }
+ else {
+  wsprintf(text, "%s error #%d", (const char*) m_strMessage, m_nError);
+ }
+ strncpy(lpstrError, text, nMaxError - 1);
+ return TRUE;
+}
+// Class CBlockingSocket
+IMPLEMENT_DYNAMIC(CBlockingSocket, CObject)
+void CBlockingSocket::Cleanup()
+{
+ // doesn't throw an exception because it's called in a catch block
+ if(m_hSocket == NULL) return;
+ VERIFY(closesocket(m_hSocket) != SOCKET_ERROR);
+ m_hSocket = NULL;
+}
+void CBlockingSocket::Create(int nType /* = SOCK_STREAM */)
+{
+ ASSERT(m_hSocket == NULL);
+ if((m_hSocket = socket(AF_INET, nType, 0)) == INVALID_SOCKET) {
+  throw new CBlockingSocketException("Create");
+ }
+}
+void CBlockingSocket::Bind(LPCSOCKADDR psa)
+{
+ ASSERT(m_hSocket != NULL);
+ if(bind(m_hSocket, psa, sizeof(SOCKADDR)) == SOCKET_ERROR) {
+  throw new CBlockingSocketException("Bind");
+ }
+}
+void CBlockingSocket::Listen()
+{
+ ASSERT(m_hSocket != NULL);
+ if(listen(m_hSocket, 5) == SOCKET_ERROR) {
+  throw new CBlockingSocketException("Listen");
+ }
+}
+BOOL CBlockingSocket::Accept(CBlockingSocket& sConnect, LPSOCKADDR psa)
+{
+ ASSERT(m_hSocket != NULL);
+ ASSERT(sConnect.m_hSocket == NULL);
+ int nLengthAddr = sizeof(SOCKADDR);
+ sConnect.m_hSocket = accept(m_hSocket, psa, &nLengthAddr);
+ if(sConnect == INVALID_SOCKET) {
+  // no exception if the listen was canceled
+  if(WSAGetLastError() != WSAEINTR) {
+   throw new CBlockingSocketException("Accept");
+  }
+  return FALSE;
+ }
+ return TRUE;
+}
+void CBlockingSocket::Close()
+{
+ if (NULL == m_hSocket)
+  return;
+ if(closesocket(m_hSocket) == SOCKET_ERROR) {
+  // should be OK to close if closed already
+  throw new CBlockingSocketException("Close");
+ }
+ m_hSocket = NULL;
+}
+void CBlockingSocket::Connect(LPCSOCKADDR psa)
+{
+ ASSERT(m_hSocket != NULL);
+ // should timeout by itself
+ if(connect(m_hSocket, psa, sizeof(SOCKADDR)) == SOCKET_ERROR) {
+  throw new CBlockingSocketException("Connect");
+ }
+}
+int CBlockingSocket::Write(const char* pch, const int nSize, const int nSecs)
+{
+ int nBytesSent = 0;
+ int nBytesThisTime;
+ const char* pch1 = pch;
+ do {
+  nBytesThisTime = Send(pch1, nSize - nBytesSent, nSecs);
+  nBytesSent += nBytesThisTime;
+  pch1 += nBytesThisTime;
+ } while(nBytesSent < nSize);
+ return nBytesSent;
+}
+int CBlockingSocket::Send(const char* pch, const int nSize, const int nSecs)
+{
+ ASSERT(m_hSocket != NULL);
+ // returned value will be less than nSize if client cancels the reading
+ FD_SET fd = {1, m_hSocket};
+ TIMEVAL tv = {nSecs, 0};
+ if(select(0, NULL, &fd, NULL, &tv) == 0) {
+  throw new CBlockingSocketException("Send timeout");
+ }
+ int nBytesSent;
+ if((nBytesSent = send(m_hSocket, pch, nSize, 0)) == SOCKET_ERROR) {
+  throw new CBlockingSocketException("Send");
+ }
+ return nBytesSent;
+}
+int CBlockingSocket::Receive(char* pch, const int nSize, const int nSecs)
+{
+ ASSERT(m_hSocket != NULL);
+ FD_SET fd = {1, m_hSocket};
+ TIMEVAL tv = {nSecs, 0};
+ if(select(0, &fd, NULL, NULL, &tv) == 0) {
+  throw new CBlockingSocketException("Receive timeout");
+ }
+ int nBytesReceived;
+ if((nBytesReceived = recv(m_hSocket, pch, nSize, 0)) == SOCKET_ERROR) {
+  throw new CBlockingSocketException("Receive");
+ }
+ return nBytesReceived;
+}
+int CBlockingSocket::ReceiveDatagram(char* pch, const int nSize, LPSOCKADDR psa, 
+const int nSecs)
+{
+ ASSERT(m_hSocket != NULL);
+ FD_SET fd = {1, m_hSocket};
+ TIMEVAL tv = {nSecs, 0};
+ if(select(0, &fd, NULL, NULL, &tv) == 0) {
+  throw new CBlockingSocketException("Receive timeout");
+ }
+ // input buffer should be big enough for the entire datagram
+ int nFromSize = sizeof(SOCKADDR);
+ int nBytesReceived = recvfrom(m_hSocket, pch, nSize, 0, psa, &nFromSize);
+ if(nBytesReceived == SOCKET_ERROR) {
+  throw new CBlockingSocketException("ReceiveDatagram");
+ }
+ return nBytesReceived;
+}
+int CBlockingSocket::SendDatagram(const char* pch, const int nSize, LPCSOCKADDR 
+psa, const int nSecs)
+{
+ ASSERT(m_hSocket != NULL);
+ FD_SET fd = {1, m_hSocket};
+ TIMEVAL tv = {nSecs, 0};
+ if(select(0, NULL, &fd, NULL, &tv) == 0) {
+  throw new CBlockingSocketException("Send timeout");
+ }
+ int nBytesSent = sendto(m_hSocket, pch, nSize, 0, psa, sizeof(SOCKADDR));
+ if(nBytesSent == SOCKET_ERROR) {
+  throw new CBlockingSocketException("SendDatagram");
+ }
+ return nBytesSent;
+}
+void CBlockingSocket::GetPeerAddr(LPSOCKADDR psa)
+{
+ ASSERT(m_hSocket != NULL);
+ // gets the address of the socket at the other end
+ int nLengthAddr = sizeof(SOCKADDR);
+ if(getpeername(m_hSocket, psa, &nLengthAddr) == SOCKET_ERROR) {
+  throw new CBlockingSocketException("GetPeerName");
+ }
+}
+void CBlockingSocket::GetSockAddr(LPSOCKADDR psa)
+{
+ ASSERT(m_hSocket != NULL);
+ // gets the address of the socket at this end
+ int nLengthAddr = sizeof(SOCKADDR);
+ if(getsockname(m_hSocket, psa, &nLengthAddr) == SOCKET_ERROR) {
+  throw new CBlockingSocketException("GetSockName");
+ }
+}
+//static
+CSockAddr CBlockingSocket::GetHostByName(const char* pchName, const USHORT 
+ushPort /* = 0 */)
+{
+ hostent* pHostEnt = gethostbyname(pchName);
+ if(pHostEnt == NULL) {
+  throw new CBlockingSocketException("GetHostByName");
+ }
+ ULONG* pulAddr = (ULONG*) pHostEnt->h_addr_list[0];
+ SOCKADDR_IN sockTemp;
+ sockTemp.sin_family = AF_INET;
+ sockTemp.sin_port = htons(ushPort);
+ sockTemp.sin_addr.s_addr = *pulAddr; // address is already in network byte 
+order
+ return sockTemp;
+}
+//static
+const char* CBlockingSocket::GetHostByAddr(LPCSOCKADDR psa)
+{
+ hostent* pHostEnt = gethostbyaddr((char*) &((LPSOCKADDR_IN) psa)
+    ->sin_addr.s_addr, 4, PF_INET);
+ if(pHostEnt == NULL) {
+  throw new CBlockingSocketException("GetHostByAddr");
+ }
+ return pHostEnt->h_name; // caller shouldn't delete this memory
+}
+// Class CHttpBlockingSocket
+IMPLEMENT_DYNAMIC(CHttpBlockingSocket, CBlockingSocket)
+CHttpBlockingSocket::CHttpBlockingSocket()
+{
+ m_pReadBuf = new char[nSizeRecv];
+ m_nReadBuf = 0;
+}
+CHttpBlockingSocket::~CHttpBlockingSocket()
+{
+ delete [] m_pReadBuf;
+}
+int CHttpBlockingSocket::ReadHttpHeaderLine(char* pch, const int nSize, const 
+int nSecs)
+// reads an entire header line through CRLF (or socket close)
+// inserts zero string terminator, object maintains a buffer
+{
+ int nBytesThisTime = m_nReadBuf;
+ int nLineLength = 0;
+ char* pch1 = m_pReadBuf;
+ char* pch2;
+ do {
+  // look for lf (assume preceded by cr)
+  if((pch2 = (char*) memchr(pch1 , '\n', nBytesThisTime)) != NULL) {
+   ASSERT((pch2) > m_pReadBuf);
+   ASSERT(*(pch2 - 1) == '\r');
+   nLineLength = (pch2 - m_pReadBuf) + 1;
+   if(nLineLength >= nSize) nLineLength = nSize - 1;
+   memcpy(pch, m_pReadBuf, nLineLength); // copy the line to caller
+   m_nReadBuf -= nLineLength;
+   memmove(m_pReadBuf, pch2 + 1, m_nReadBuf); // shift remaining characters left
+   break;
+  }
+  pch1 += nBytesThisTime;
+  nBytesThisTime = Receive(m_pReadBuf + m_nReadBuf, nSizeRecv - m_nReadBuf, 
+nSecs);
+  if(nBytesThisTime <= 0) { // sender closed socket or line longer than buffer
+   throw new CBlockingSocketException("ReadHeaderLine");
+  }
+  m_nReadBuf += nBytesThisTime;
+ }
+ while(TRUE);
+ *(pch + nLineLength) = '\0';
+ return nLineLength;
+}
+int CHttpBlockingSocket::ReadHttpResponse(char* pch, const int nSize, const int 
+nSecs)
+// reads remainder of a transmission through buffer full or socket close
+// (assume headers have been read already)
+{
+ int nBytesToRead, nBytesThisTime, nBytesRead = 0;
+ if(m_nReadBuf > 0) { // copy anything already in the recv buffer
+  memcpy(pch, m_pReadBuf, m_nReadBuf);
+  pch += m_nReadBuf;
+  nBytesRead = m_nReadBuf;
+  m_nReadBuf = 0;
+ }
+ do { // now pass the rest of the data directly to the caller
+  nBytesToRead = min(nSizeRecv, nSize - nBytesRead);
+  nBytesThisTime = Receive(pch, nBytesToRead, nSecs);
+  if(nBytesThisTime <= 0) break; // sender closed the socket
+  pch += nBytesThisTime;
+  nBytesRead += nBytesThisTime;
+ }
+ while(nBytesRead <= nSize);
+ return nBytesRead;
+}
+void LogBlockingSocketException(LPVOID pParam, char* pch, 
+CBlockingSocketException* pe)
+{ // pParam holds the HWND for the destination window (in another thread)
+ CString strGmt = CTime::GetCurrentTime().FormatGmt("%m/%d/%y %H:%M:%S GMT");
+ char text1[200], text2[50];
+ pe->GetErrorMessage(text2, 49);
+ wsprintf(text1, "WINSOCK ERROR--%s %s -- %s\r\n", pch, text2, (const char*) 
+strGmt);
+ ::SendMessage((HWND) pParam, EM_SETSEL, (WPARAM) 65534, 65535);
+ ::SendMessage((HWND) pParam, EM_REPLACESEL, (WPARAM) 0, (LPARAM) text1);
+}
+
+ 
+Utility.h/cpp 主要实现通信中状态和异常的记录，类CCallbackInternetSession ：
+// utility.h
+#define WM_CALLBACK WM_USER + 5
+extern volatile int g_nConnection;
+extern CString g_strServerName; // used by both winsock and wininet code
+extern CString g_strServerIP; // used by both winsock and wininet code
+extern CString g_strFile;
+extern char g_pchStatus[];
+extern HWND g_hMainWnd;
+extern CCriticalSection g_csStatus;
+extern CString g_strIPClient;
+extern volatile UINT g_nPort;
+extern CString g_strProxy;
+extern BOOL g_bUseProxy;
+extern volatile BOOL g_bListening;
+extern CString g_strDirect;
+extern CString g_strIPServer;
+extern volatile UINT g_nPortServer;
+extern CString g_strURL;
+extern CString g_strDefault;
+extern UINT ClientUrlThreadProc(LPVOID pParam);
+extern UINT ServerThreadProc(LPVOID pParam);
+extern UINT ClientWinInetThreadProc(LPVOID pParam);
+extern UINT ClientSocketThreadProc(LPVOID pParam);
+extern void LogInternetException(LPVOID pParam, CInternetException* pe);
+class CCallbackInternetSession : public CInternetSession
+{
+public:
+ CCallbackInternetSession( LPCTSTR pstrAgent = NULL, DWORD dwContext = 1,
+  DWORD dwAccessType = PRE_CONFIG_INTERNET_ACCESS, LPCTSTR pstrProxyName = NULL,
+  LPCTSTR pstrProxyBypass = NULL, DWORD dwFlags = 0 );
+protected:
+ virtual void OnStatusCallback(DWORD dwContext, DWORD dwInternalStatus,
+  LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);
+};
+
+ 
+// utility.cpp -- contains stuff used by more than one thread
+#include <stdafx.h>
+#include "blocksock.h"
+#include "utility.h"
+volatile int g_nConnection = 0; // connection number
+CString g_strServerName = "localhost"; // used by both winsock and wininet
+CString g_strServerIP;
+volatile UINT g_nPort = 80;
+CString g_strFile = "/custom";
+CCallbackInternetSession::CCallbackInternetSession( LPCTSTR pstrAgent, DWORD 
+dwContext,
+  DWORD dwAccessType, LPCTSTR pstrProxyName, LPCTSTR pstrProxyBypass, DWORD 
+dwFlags) :
+ CInternetSession(pstrAgent, dwContext, dwAccessType, pstrProxyName, 
+pstrProxyBypass, dwFlags)
+{
+ EnableStatusCallback();
+}
+void CCallbackInternetSession::OnStatusCallback(DWORD dwContext, DWORD 
+dwInternalStatus,
+  LPVOID lpvStatusInformation, DWORD dwStatusInformationLength)
+{
+ AFX_MANAGE_STATE(AfxGetStaticModuleState());
+ int errors[] = {10, 11, 20, 21, 30, 31, 40, 41, 42, 43, 50, 51, 60, 70, 100, 
+110, 0};
+ char* text[] = { 
+  "Resolving name",        
+  "Name resolved",       
+  "Connecting to server",
+  "Connected to server",  
+  "Sending request",      
+  "Request sent",         
+  "Receiving response",   
+  "Response received",    
+  "Ctl response received",
+  "Prefetch",             
+  "Closing connection",   
+  "Connection closed",    
+  "Handle created",       
+  "Handle closing",       
+  "Request complete",     
+  "Redirect",
+  "Unknown" };
+ int n;
+/*  // demonstrates request cancellation 
+ if(dwInternalStatus == INTERNET_STATUS_REQUEST_SENT) {
+  AfxThrowInternetException(dwContext, 999);
+ }
+*/
+ for(n = 0; errors[n] != 0; n++) {
+  if(errors[n] == (int) dwInternalStatus) break;
+ }
+ g_csStatus.Lock();
+   strcpy(g_pchStatus, text[n]);
+   if(dwInternalStatus  == INTERNET_STATUS_RESOLVING_NAME || 
+    dwInternalStatus == INTERNET_STATUS_NAME_RESOLVED) {
+  strcat(g_pchStatus, "-");
+  strcat(g_pchStatus, (char*) lpvStatusInformation);
+   }
+   TRACE("WININET STATUS: %s\n", g_pchStatus);
+ g_csStatus.Unlock();
+ // frame doesn't need a handler -- message triggers OnIdle, which updates 
+status bar
+ ::PostMessage(g_hMainWnd, WM_CALLBACK, 0, 0);
+}
+void LogInternetException(LPVOID pParam, CInternetException* pe)
+{ // pParam holds the HWND for the destination window (in another thread)
+ CString strGmt = CTime::GetCurrentTime().FormatGmt("%m/%d/%y %H:%M:% GMT");
+ char text1[300], text2[100];
+ wsprintf(text1, "CLIENT ERROR: WinInet error #%d -- %s\r\n   ",
+  pe->m_dwError, (const char*) strGmt);
+ pe->GetErrorMessage(text2, 99);
+ strcat(text1, text2);
+ if(pe->m_dwError == 12152) {
+  strcat(text1, "  URL not found?\r\n");
+ }
+ ::SendMessage((HWND) pParam, EM_SETSEL, (WPARAM) 65534, 65535);
+ ::SendMessage((HWND) pParam, EM_REPLACESEL, (WPARAM) 0, (LPARAM) text1);
+}
+SheetConfig.h/cpp用sheet/page方式来设置有关参数，可以参考12章中有关内容了解属性表的用法
+SheetConfig.h如下：
+
+#pragma once
+
+// CPageServer dialog
+class CPageServer : public CPropertyPage
+{
+ DECLARE_DYNAMIC(CPageServer)
+public:
+ CPageServer();
+ virtual ~CPageServer();
+// Dialog Data
+ enum { IDD = IDD_PROPPAGE_SERVER };
+ CString m_strDirect;
+ UINT m_nPortServer;
+ CString m_strDefault;
+protected:
+ virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+ DECLARE_MESSAGE_MAP()
+};
+#pragma once
+
+// CPageAdv dialog
+class CPageAdv : public CPropertyPage
+{
+ DECLARE_DYNAMIC(CPageAdv)
+public:
+ CPageAdv();
+ virtual ~CPageAdv();
+// Dialog Data
+ enum { IDD = IDD_PROPPAGE_ADV };
+ CString m_strIPServer;
+ CString m_strIPClient;
+protected:
+ virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+ DECLARE_MESSAGE_MAP()
+};
+#pragma once
+
+// CPageClient dialog
+class CPageClient : public CPropertyPage
+{
+ DECLARE_DYNAMIC(CPageClient)
+public:
+ CPageClient();
+ virtual ~CPageClient();
+// Dialog Data
+ enum { IDD = IDD_PROPPAGE_CLIENT };
+ CString m_strProxy;
+ CString m_strServerIP;
+ CString m_strServerName;
+ BOOL m_bUseProxy;
+ CString m_strFile;
+ UINT m_nPort;
+protected:
+ virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+ DECLARE_MESSAGE_MAP()
+};
+#pragma once
+ 
+// CSheetConfig
+class CSheetConfig : public CPropertySheet
+{
+ DECLARE_DYNAMIC(CSheetConfig)
+public:
+ CSheetConfig(UINT nIDCaption, CWnd* pParentWnd = NULL, UINT iSelectPage = 0);
+ CSheetConfig(LPCTSTR pszCaption, CWnd* pParentWnd = NULL, UINT iSelectPage = 
+0);
+ virtual ~CSheetConfig();
+ CPageAdv m_pageAdv;
+ CPageClient m_pageClient;
+ CPageServer m_pageServer;
+protected:
+ DECLARE_MESSAGE_MAP()
+};
+SheetConfig.cpp如下：
+
+// SheetConfig.cpp : implementation file
+//
+#include "stdafx.h"
+#include "Ex28a.h"
+#include "SheetConfig.h"
+
+// CSheetConfig
+IMPLEMENT_DYNAMIC(CSheetConfig, CPropertySheet)
+CSheetConfig::CSheetConfig(UINT nIDCaption, CWnd* pParentWnd, UINT iSelectPage)
+ :CPropertySheet(nIDCaption, pParentWnd, iSelectPage)
+{
+}
+CSheetConfig::CSheetConfig(LPCTSTR pszCaption, CWnd* pParentWnd, UINT 
+iSelectPage)
+ :CPropertySheet(pszCaption, pParentWnd, iSelectPage)
+{
+ AddPage(&m_pageClient);
+ AddPage(&m_pageServer);
+ AddPage(&m_pageAdv);
+}
+CSheetConfig::~CSheetConfig()
+{
+}
+
+BEGIN_MESSAGE_MAP(CSheetConfig, CPropertySheet)
+END_MESSAGE_MAP()
+
+// CSheetConfig message handlers
+// SheetConfig.cpp : implementation file
+//
+#include "stdafx.h"
+#include "Ex28a.h"
+#include "SheetConfig.h"
+
+// CPageServer dialog
+IMPLEMENT_DYNAMIC(CPageServer, CPropertyPage)
+CPageServer::CPageServer()
+ : CPropertyPage(CPageServer::IDD)
+{
+ m_strDirect = _T("");
+ m_nPortServer = 0;
+ m_strDefault = _T("");
+}
+CPageServer::~CPageServer()
+{
+}
+void CPageServer::DoDataExchange(CDataExchange* pDX)
+{
+ CPropertyPage::DoDataExchange(pDX);
+ DDX_Text(pDX, IDC_DIRECT, m_strDirect);
+ DDX_Text(pDX, IDC_PORTSERVER, m_nPortServer);
+ DDX_Text(pDX, IDC_DEFAULT, m_strDefault);
+}
+
+BEGIN_MESSAGE_MAP(CPageServer, CPropertyPage)
+END_MESSAGE_MAP()
+
+// CPageServer message handlers
+// SheetConfig.cpp : implementation file
+//
+#include "stdafx.h"
+#include "Ex28a.h"
+#include "SheetConfig.h"
+
+// CPageAdv dialog
+IMPLEMENT_DYNAMIC(CPageAdv, CPropertyPage)
+CPageAdv::CPageAdv()
+ : CPropertyPage(CPageAdv::IDD)
+{
+ m_strIPServer = _T("");
+ m_strIPClient = _T("");
+}
+CPageAdv::~CPageAdv()
+{
+}
+void CPageAdv::DoDataExchange(CDataExchange* pDX)
+{
+ CPropertyPage::DoDataExchange(pDX);
+ DDX_Text(pDX, IDC_IPSERVER, m_strIPServer);
+ DDX_Text(pDX, IDC_IPCLIENT, m_strIPClient);
+}
+
+BEGIN_MESSAGE_MAP(CPageAdv, CPropertyPage)
+END_MESSAGE_MAP()
+
+// CPageAdv message handlers
+// SheetConfig.cpp : implementation file
+//
+#include "stdafx.h"
+#include "Ex28a.h"
+#include "SheetConfig.h"
+
+// CPageClient dialog
+IMPLEMENT_DYNAMIC(CPageClient, CPropertyPage)
+CPageClient::CPageClient()
+ : CPropertyPage(CPageClient::IDD)
+{
+ m_strProxy = _T("");
+ m_strServerIP = _T("");
+ m_strServerName = _T("");
+ m_bUseProxy = FALSE;
+ m_strFile = _T("");
+ m_nPort = 0;
+}
+CPageClient::~CPageClient()
+{
+}
+void CPageClient::DoDataExchange(CDataExchange* pDX)
+{
+ CPropertyPage::DoDataExchange(pDX);
+ DDX_Text(pDX, IDC_PROXY, m_strProxy);
+ DDX_Text(pDX, IDC_IPADDR, m_strServerIP);
+ DDX_Text(pDX, IDC_SERVER, m_strServerName);
+ DDX_Check(pDX, IDC_USEPROXY, m_bUseProxy);
+ DDX_Text(pDX, IDC_FILE, m_strFile);
+ DDX_Text(pDX, IDC_PORT, m_nPort);
+}
+
+BEGIN_MESSAGE_MAP(CPageClient, CPropertyPage)
+END_MESSAGE_MAP()
+
+// CPageClient message handlers
+
+主框架部分，Ex28a是一个SDI程序，view从CEditView派生。
+服务器启动的响应代码如下：
+void CEx28aView::OnInternetStartServer()
+{
+ try {
+  CSockAddr saServer;
+  if(g_strIPServer.IsEmpty()) { // first or only IP
+   saServer = CSockAddr(INADDR_ANY, (USHORT) g_nPortServer);
+  }
+  else { // if our computer has multiple IP addresses...
+   saServer = CSockAddr(g_strIPServer, (USHORT) g_nPortServer);
+  }
+  g_sListen.Create();
+  g_sListen.Bind(saServer);
+  g_sListen.Listen();// start listening
+  g_bListening = TRUE;
+  g_nConnection = 0;
+  AfxBeginThread(ServerThreadProc, GetSafeHwnd(), THREAD_PRIORITY_NORMAL);
+ }
+ catch(CBlockingSocketException* e) {
+  g_sListen.Cleanup();
+  LogBlockingSocketException(GetSafeHwnd(), "VIEW:", e);
+  e->Delete();
+ }
+}
+相应的服务器工作线程ServerThreadProc在ServerThread.cpp中（NT系列中，其中的Read循环用TransmitFile代替，效率更高）
+// serverthread.cpp
+#include <stdafx.h>
+#include "blocksock.h"
+#include "utility.h"
+#define SERVERMAXBUF 5000
+#define MAXLINELENGTH 100
+//#define USE_TRANSMITFILE // uncomment if you have Windows 2000/XP
+volatile BOOL g_bListening = FALSE;
+volatile UINT g_nPortServer = 80;
+CString g_strDirect = "\\vcppnet\\Ex28a\\WebSite";
+CString g_strIPServer;
+CString g_strDefault = "default.htm";
+CBlockingSocket g_sListen;
+BOOL Parse(char* pStr, char** ppToken1, char** ppToken2)
+// really stupid parsing routine
+// (must find two tokens, each followed by a space)
+{
+ *ppToken1 = pStr;
+ char* pch = strchr(pStr, ' ');
+ if(pch) {
+  *pch = '\0';
+  pch++;
+  *ppToken2 = pch;
+  pch = strchr(pch, ' ');
+  if(pch) {
+   *pch = '\0';
+   return TRUE;
+  }
+ }
+ return FALSE;
+}
+void LogRequest(LPVOID pParam, char* pch, CSockAddr sa)
+{ // pParam holds the HWND for the destination window (in another thread)
+ CString strGmt = CTime::GetCurrentTime().FormatGmt("%m/%d/%y %H:%M:%S GMT");
+ char text1[1000];
+ wsprintf(text1, "SERVER CONNECTION # %d: IP addr = %s, port = %d -- %s\r\n",
+  g_nConnection, sa.DottedDecimal(), sa.Port(),  (const char*) strGmt);
+ strcat(text1, pch);
+ ::SendMessage((HWND) pParam, EM_SETSEL, (WPARAM) 65534, 65535);
+ ::SendMessage((HWND) pParam, EM_REPLACESEL, (WPARAM) 0, (LPARAM) text1);
+}
+CFile* OpenFile(const char* pName)
+{
+ // if it's really a directory, open the default HTML file
+ CFileException e;
+ CFile* pFile = new CFile();
+ if(*pName == '/') pName++;
+ CString strName = pName;
+ if(pFile->Open(strName, CFile::modeRead, &e)) {
+  return pFile;
+ }
+ if((e.m_cause == CFileException::accessDenied) ||
+   (e.m_cause == CFileException::badPath)) { // directory?
+  int nLength;
+  // add a / unless it's the "root" directory
+  if((nLength = strName.GetLength()) > 1) {
+   if(strName[nLength - 1] != '/') {
+    strName += '/';
+   }
+  }
+  strName += g_strDefault;
+  if(pFile->Open(strName, CFile::modeRead, &e)) {
+   return pFile;
+  }
+ }
+ delete pFile;
+ return NULL;
+}
+UINT ServerThreadProc(LPVOID pParam)
+{
+ CSockAddr saClient;
+ CHttpBlockingSocket sConnect;
+ char* buffer = new char[SERVERMAXBUF];
+ char message[100], headers[500], request1[MAXLINELENGTH],  
+request2[MAXLINELENGTH];
+ char hdrErr[] = "HTTP/1.0 404 Object Not Found\r\n"
+       "Server: Inside Visual C++ .NET SOCK01\r\n"
+       "Content-Type: text/html\r\n"
+       "Accept-Ranges: bytes\r\n"
+       "Content-Length: 66\r\n\r\n" // WinInet wants correct length
+       "<html><h1><body>HTTP/1.0 404 Object Not Found</h1></body></html>\r\n";
+ char hdrFmt[] = "HTTP/1.0 200 OK\r\n"
+       "Server: Inside Visual C++ .NET Ex28a\r\n"
+       "Date: %s\r\n"
+       "Content-Type: text/html\r\n"
+       "Accept-Ranges: bytes\r\n"
+       "Content-Length: %d\r\n";
+ char html1[] = "<html><head><title>Inside Visual C++ \
+                 Server</title></head>\r\n"
+       "<body><body background=\"/samples/images/usa1.jpg\">\r\n"
+       "<h1><center>This is a custom home page</center></h1><p>\r\n"
+       "<a href=\"/samples/iisdocs.htm\">Click here for iisdocs.htm.</a><p>\r\n"
+       "<a href=\"/samples/disclaim.htm\">Click here for 
+disclaim.htm.</a><p>\r\n";
+     // custom message goes here
+ char html2[] = "</body></html>\r\n\r\n";
+ CString strGmtNow = CTime::GetCurrentTime().FormatGmt("%a, %d %b %Y %H:%M:%S 
+GMT");
+ int nBytesSent = 0;
+ CFile* pFile = NULL;
+ try {
+  if(!g_sListen.Accept(sConnect, saClient)) {
+   // view or application closed the listing socket
+   g_bListening = FALSE;
+   delete [] buffer;
+   return 0;
+  }
+  g_nConnection++;
+  ::SetCurrentDirectory(g_strDirect);
+  AfxBeginThread(ServerThreadProc, pParam, THREAD_PRIORITY_NORMAL);
+  // read request from client
+  sConnect.ReadHttpHeaderLine(request1, MAXLINELENGTH, 10);
+  LogRequest(pParam, request1, saClient);
+  char* pToken1; char* pToken2;
+  if(Parse(request1, &pToken1, &pToken2)) {
+   if(!stricmp(pToken1, "GET")) {
+    do { // eat the remaining headers
+     sConnect.ReadHttpHeaderLine(request2, MAXLINELENGTH, 10);
+     TRACE("SERVER: %s", request2);
+    }
+    while(strcmp(request2, "\r\n"));
+    if(!stricmp(pToken2, "/custom")) { // special request
+     // send a "custom" HTML  page
+     wsprintf(message, "Hi! you are connection #%d on IP %s, port %d<p>%s",
+       g_nConnection, saClient.DottedDecimal(), saClient.Port(), strGmtNow);
+     wsprintf(headers, hdrFmt, (const char*) strGmtNow, strlen(html1)
+         + strlen(message) + strlen(html2));
+     // no If-Modified
+     strcat(headers, "\r\n"); // blank line
+     sConnect.Write(headers, strlen(headers), 10);
+     sConnect.Write(html1, strlen(html1), 10);
+     sConnect.Write(message, strlen(message), 10);
+     sConnect.Write(html2, strlen(html2), 10);
+    }
+    else if(strchr(pToken2, '?')) { // CGI request
+     // Netscape doesn't pass function name in a GET
+     TRACE("SERVER: CGI request detected %s\n", pToken2);
+     // could load and run the ISAPI DLL here
+    }
+    else { // must be a file
+     // assumme this program has already set the default WWW directory
+     if((pFile = OpenFile(pToken2)) != NULL) {
+      CFileStatus fileStatus;
+      pFile->GetStatus(fileStatus);
+      CString strGmtMod = fileStatus.m_mtime.FormatGmt("%a, %d %b %Y %H:%M:%S 
+GMT");
+      char hdrModified[50];
+      wsprintf(hdrModified, "Last-Modified: %s\r\n\r\n", (const char*) 
+strGmtMod);
+      DWORD dwLength = pFile->GetLength();
+      // Date: , Content-Length:
+      wsprintf(headers, hdrFmt,  (const char*) strGmtNow, dwLength);
+      strcat(headers, hdrModified);
+      nBytesSent = sConnect.Write(headers, strlen(headers), 10);
+      TRACE("SERVER: header characters sent = %d\n", nBytesSent);
+      // would be a good idea to send the file only if the If-Modified-Since 
+date
+      // were less than the file's m_mtime
+      nBytesSent = 0;
+#ifdef USE_TRANSMITFILE
+      if(::TransmitFile(sConnect, (HANDLE) pFile->m_hFile, dwLength,
+        0, NULL, NULL, TF_DISCONNECT)) {
+       nBytesSent = (int) dwLength;
+      }
+#else
+      DWORD dwBytesRead = 0;
+      UINT uBytesToRead;
+      // send file in small chunks (5K) to avoid big memory alloc overhead
+      while(dwBytesRead < dwLength) {
+       uBytesToRead = min(SERVERMAXBUF, dwLength - dwBytesRead);
+       VERIFY(pFile->Read(buffer, uBytesToRead) == uBytesToRead);
+       nBytesSent += sConnect.Write(buffer, uBytesToRead, 10);
+       dwBytesRead += uBytesToRead;
+      }
+#endif
+      TRACE("SERVER: full file sent successfully\n");
+     }
+     else {
+      nBytesSent = sConnect.Write(hdrErr, strlen(hdrErr), 10); // 404 Object Not 
+Found
+     }
+    }
+   }
+   else if(!stricmp(pToken1, "POST")) {
+    do { // eat the remaining headers thru blank line
+     sConnect.ReadHttpHeaderLine(request2, MAXLINELENGTH, 10);
+     TRACE("SERVER: POST %s", request2);
+    }
+    while(strcmp(request2, "\r\n"));
+    // read the data line sent by the client
+    sConnect.ReadHttpHeaderLine(request2, MAXLINELENGTH, 10);
+    TRACE("SERVER: POST PARAMETERS = %s\n", request2);
+    LogRequest(pParam, request2, saClient);
+    // launch ISAPI DLL here?
+    nBytesSent = sConnect.Write(hdrErr, strlen(hdrErr), 10); // 404 error for 
+now
+   }
+   else {
+    TRACE("SERVER: %s (not a GET or POST)\n", pToken1);
+    // don't know how to eat the headers
+   }
+  }
+  else {
+   TRACE("SERVER: bad request\n");
+  }
+  sConnect.Close(); // destructor can't close it
+ }
+ catch(CBlockingSocketException* pe) {
+  LogBlockingSocketException(pParam, "SERVER:", pe);
+  pe->Delete();
+ }
+ TRACE("SERVER: file characters sent = %d\n", nBytesSent);
+ delete [] buffer;
+ if(pFile) delete pFile;
+ return 0;
+}
+开始测试这个服务器，在IE浏览器输入http://localhost/、http://localhost/default.htm（出现页面点击里面的链接测试）、http://localhost/custom（不存在custom目录，可以用作特殊的处理）
+ 
+标签: VC   HTTP   winsock   wininet   . 
+分类: 计算机服务器知识与类Unix系统使用 
+所属版块: 科技 
+ 分享到和讯微博 
+[收藏到我的转帖] [引用通告] 
+[推荐] [评论] [举报] [打印] 
+本文章被推荐到了0个圈子
+点击数: 183  评论数: 0
+  0我 顶 ！觉得精彩就顶一下，顶的多了，文章将出现在更重要的位置上。 
+下一篇: 3周岁宝宝大便干硬
+上一篇: 模拟浏览器http请求的简单例子（VC和wininet）
+最新读者留下足迹请登录
+
+[登录][注册]sneeq
+
+
+发表评论
+大 名:  [登录]  [注册成为和讯用户]
+(不填写则显示为匿名者)
+网 址:
+(您的网址，可以不填)
+标 题:
+
+内 容:
+字数上限为2000字
+
+请根据下图中的字符输入验证码：
+0
+ 点这里显示验证码。
+
+
+(您的评论将有可能审核后才能发表)
+和讯个人门户 v1.0 | 和讯家园 | 意见反馈欢迎通过百度搜索来到 和讯博客 

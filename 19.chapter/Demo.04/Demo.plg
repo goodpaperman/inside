@@ -1,0 +1,39 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: Demo - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP10D.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Fp"Debug/Demo.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\codes\mfc\07.Kruglinski.Inside Visual C++ 5.0\19.chapter\Demo.04\MainFrm.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP10D.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP10E.tmp" with contents
+[
+/nologo /subsystem:windows /incremental:yes /pdb:"Debug/Demo.pdb" /debug /machine:I386 /out:"Debug/Demo.exe" /pdbtype:sept 
+".\Debug\ChildFrm.obj"
+".\Debug\Demo.obj"
+".\Debug\HexView.obj"
+".\Debug\MainFrm.obj"
+".\Debug\PoemDoc.obj"
+".\Debug\StdAfx.obj"
+".\Debug\StringView.obj"
+".\Debug\Demo.res"
+]
+Creating command line "link.exe @C:\DOCUME~1\ADMINI~1.BFC\LOCALS~1\Temp\RSP10E.tmp"
+<h3>Output Window</h3>
+Compiling...
+MainFrm.cpp
+Linking...
+
+
+
+<h3>Results</h3>
+Demo.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

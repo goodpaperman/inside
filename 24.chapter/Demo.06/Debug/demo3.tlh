@@ -1,0 +1,104 @@
+// Created by Microsoft (R) C/C++ Compiler Version 12.00.8168.0 (568f138f).
+//
+// e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\demo3.tlh
+//
+// C++ source equivalent of Win32 type library ..\Demo.04\debug\demo3.tlb
+// compiler-generated file created 07/25/10 at 13:43:57 - DO NOT EDIT!
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+namespace ClockDriv {
+
+//
+// Forward references and typedefs
+//
+
+struct __declspec(uuid("93748a0c-0957-46c9-a7d3-9e36392f4c4c"))
+/* dispinterface */ IDemo;
+struct /* coclass */ Document;
+struct __declspec(uuid("95ca716b-aaca-4558-a488-b22dc29e0700"))
+/* dispinterface */ IAlarm;
+struct /* coclass */ Alarm;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(IDemo, __uuidof(IDispatch));
+_COM_SMARTPTR_TYPEDEF(IAlarm, __uuidof(IDispatch));
+
+//
+// Type library items
+//
+
+struct __declspec(uuid("93748a0c-0957-46c9-a7d3-9e36392f4c4c"))
+IDemo : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetFigure,put=PutFigure))
+    _variant_t Figure[];
+    __declspec(property(get=GetTime,put=PutTime))
+    DATE Time;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    // Methods:
+    _variant_t GetFigure (
+        short nIndex );
+    void PutFigure (
+        short nIndex,
+        const _variant_t & _arg2 );
+    HRESULT RefreshWin ( );
+    HRESULT ShowWin ( );
+    IDispatchPtr CreateAlarm (
+        DATE Time );
+
+    // Properties:
+    DATE GetTime ( );
+    void PutTime ( DATE _val );
+};
+
+struct __declspec(uuid("8f3233c1-2ba8-4800-9590-b045d248863c"))
+Document;
+    // [ default ] dispinterface IDemo
+
+struct __declspec(uuid("95ca716b-aaca-4558-a488-b22dc29e0700"))
+IAlarm : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetTime,put=PutTime))
+    DATE Time;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    // Properties:
+    DATE GetTime ( );
+    void PutTime ( DATE _val );
+};
+
+struct __declspec(uuid("ae8e43a5-46fb-466a-80ef-26e067c5c2b9"))
+Alarm;
+    // [ default ] dispinterface IAlarm
+
+//
+// Wrapper method implementations
+//
+
+#include "e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\demo3.tli"
+
+} // namespace ClockDriv
+
+#pragma pack(pop)

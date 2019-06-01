@@ -1,0 +1,22 @@
+
+[uuid(A8A8C8C9-747A-44cb-B951-58ED622208A0), version(1.0)]
+library Demo
+{
+	importlib("stdole32.tlb"); 
+	[uuid(b66cb015-c9b1-485b-9e0b-d7ebd2858834)] 
+	dispinterface IBank
+	{
+		properties: 
+		[id(1)]double Balance; 
+
+		methods: 
+		[id(2)]double Withdrawal(double dAmount); 
+		[id(3)]void Deposit(double dAmount); 
+	}; 
+
+	[uuid(b66cb016-c9b1-485b-9e0b-d7ebd2858834)]
+	coclass Bank
+	{
+		[default]dispinterface IBank; 
+	}
+}; 

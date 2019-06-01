@@ -1,0 +1,77 @@
+// Demo.odl : type library source for Demo.exe
+
+// This file will be processed by the MIDL compiler to produce the
+// type library (Demo.tlb).
+
+[ uuid(839C327D-438E-42ED-8C85-21A3F8719C82), version(1.0) ]
+library Demo
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+
+	//  Primary dispatch interface for CDemoDoc
+	
+	[ uuid(93748A0C-0957-46C9-A7D3-9E36392F4C4C) ]
+	dispinterface IDemo
+	{
+		properties:
+			// NOTE - ClassWizard will maintain property information here.
+			//    Use extreme caution when editing this section.
+			//{{AFX_ODL_PROP(CDemoDoc)
+			[id(1)] DATE Time;
+			//}}AFX_ODL_PROP
+			
+		methods:
+			// NOTE - ClassWizard will maintain method information here.
+			//    Use extreme caution when editing this section.
+			//{{AFX_ODL_METHOD(CDemoDoc)
+			[id(5), propget] VARIANT Figure(short nIndex);
+			[id(5), propput] void Figure(short nIndex, VARIANT newValue);
+			[id(2)] void RefreshWin();
+			[id(3)] void ShowWin();
+			[id(4)] IDispatch* CreateAlarm(DATE time);
+			//}}AFX_ODL_METHOD
+
+	};
+
+	//  Class information for CDemoDoc
+	
+	[ uuid(8F3233C1-2BA8-4800-9590-B045D248863C) ]
+	coclass Document
+	{
+		[default] dispinterface IDemo;
+	};
+
+
+	//  Primary dispatch interface for CAlarm
+	
+	[ uuid(95CA716B-AACA-4558-A488-B22DC29E0700) ]
+	dispinterface IAlarm
+	{
+		properties:
+			// NOTE - ClassWizard will maintain property information here.
+			//    Use extreme caution when editing this section.
+			//{{AFX_ODL_PROP(CAlarm)
+			[id(1)] DATE Time;
+			//}}AFX_ODL_PROP
+			
+		methods:
+			// NOTE - ClassWizard will maintain method information here.
+			//    Use extreme caution when editing this section.
+			//{{AFX_ODL_METHOD(CAlarm)
+			//}}AFX_ODL_METHOD
+
+	};
+
+	//  Class information for CAlarm
+
+	[ uuid(AE8E43A5-46FB-466A-80EF-26E067C5C2B9) ]
+	coclass Alarm
+	{
+		[default] dispinterface IAlarm;
+	};
+
+	//{{AFX_APPEND_ODL}}
+	//}}AFX_APPEND_ODL}}
+};

@@ -1,0 +1,45 @@
+// Demo.odl : type library source for Demo.dll
+
+// This file will be processed by the MIDL compiler to produce the
+// type library (Demo.tlb).
+
+[ uuid(05B77708-DEF8-4B55-A159-9237FE18F87E), version(1.0) ]
+library Demo
+{
+	importlib("stdole32.tlb");
+	importlib("stdole2.tlb");
+
+
+
+
+	//  Primary dispatch interface for CText
+	
+	[ uuid(0CBC9685-4D25-4CBE-A79A-63A30711B110) ]
+	dispinterface IText
+	{
+		properties:
+			// NOTE - ClassWizard will maintain property information here.
+			//    Use extreme caution when editing this section.
+			//{{AFX_ODL_PROP(CText)
+			[id(1)] VARIANT Text;
+			//}}AFX_ODL_PROP
+			
+		methods:
+			// NOTE - ClassWizard will maintain method information here.
+			//    Use extreme caution when editing this section.
+			//{{AFX_ODL_METHOD(CText)
+			//}}AFX_ODL_METHOD
+
+	};
+
+	//  Class information for CText
+
+	[ uuid(2B43BB26-5C11-4DA5-9035-D5B71F590100) ]
+	coclass Text
+	{
+		[default] dispinterface IText;
+	};
+
+	//{{AFX_APPEND_ODL}}
+	//}}AFX_APPEND_ODL}}
+};

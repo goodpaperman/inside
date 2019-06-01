@@ -1,0 +1,63 @@
+// Created by Microsoft (R) C/C++ Compiler Version 12.00.8168.0 (568f138f).
+//
+// e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\demo3.tli
+//
+// Wrapper implementations for Win32 type library ..\Demo.04\debug\demo3.tlb
+// compiler-generated file created 07/25/10 at 13:43:57 - DO NOT EDIT!
+
+#pragma once
+
+//
+// dispinterface IDemo wrapper method implementations
+//
+
+inline _variant_t IDemo::GetFigure ( short nIndex ) {
+    VARIANT _result;
+    _com_dispatch_method(this, 0x5, DISPATCH_PROPERTYGET, VT_VARIANT, (void*)&_result, 
+        L"\x0002", nIndex);
+    return _variant_t(_result, false);
+}
+
+inline void IDemo::PutFigure ( short nIndex, const _variant_t & _arg2 ) {
+    _com_dispatch_method(this, 0x5, DISPATCH_PROPERTYPUT, VT_EMPTY, NULL, 
+        L"\x0002\x000c", nIndex, &_arg2);
+}
+
+inline HRESULT IDemo::RefreshWin ( ) {
+    return _com_dispatch_method(this, 0x2, DISPATCH_METHOD, VT_EMPTY, NULL, NULL);
+}
+
+inline HRESULT IDemo::ShowWin ( ) {
+    return _com_dispatch_method(this, 0x3, DISPATCH_METHOD, VT_EMPTY, NULL, NULL);
+}
+
+inline IDispatchPtr IDemo::CreateAlarm ( DATE Time ) {
+    IDispatch * _result;
+    _com_dispatch_method(this, 0x4, DISPATCH_METHOD, VT_DISPATCH, (void*)&_result, 
+        L"\x0007", Time);
+    return IDispatchPtr(_result, false);
+}
+
+inline DATE IDemo::GetTime ( ) {
+    DATE _result;
+    _com_dispatch_propget(this, 0x1, VT_DATE, (void*)&_result);
+    return _result;
+}
+
+inline void IDemo::PutTime ( DATE _val ) {
+    _com_dispatch_propput(this, 0x1, VT_DATE, _val);
+}
+
+//
+// dispinterface IAlarm wrapper method implementations
+//
+
+inline DATE IAlarm::GetTime ( ) {
+    DATE _result;
+    _com_dispatch_propget(this, 0x1, VT_DATE, (void*)&_result);
+    return _result;
+}
+
+inline void IAlarm::PutTime ( DATE _val ) {
+    _com_dispatch_propput(this, 0x1, VT_DATE, _val);
+}

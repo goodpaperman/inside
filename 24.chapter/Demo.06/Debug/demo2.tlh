@@ -1,0 +1,71 @@
+// Created by Microsoft (R) C/C++ Compiler Version 12.00.8168.0 (0a67d322).
+//
+// e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\demo2.tlh
+//
+// C++ source equivalent of Win32 type library ..\Demo.03\debug\demo2.tlb
+// compiler-generated file created 07/25/10 at 13:43:57 - DO NOT EDIT!
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+namespace AutoDriv {
+
+//
+// Forward references and typedefs
+//
+
+struct __declspec(uuid("e3ea3678-ae8d-43b6-b418-7e3a1cd7cc2d"))
+/* dispinterface */ IDemoAuto;
+struct /* coclass */ Auto;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(IDemoAuto, __uuidof(IDispatch));
+
+//
+// Type library items
+//
+
+struct __declspec(uuid("e3ea3678-ae8d-43b6-b418-7e3a1cd7cc2d"))
+IDemoAuto : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetLongData,put=PutLongData))
+    long LongData;
+    __declspec(property(get=GetTextData,put=PutTextData))
+    _variant_t TextData;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    // Methods:
+    VARIANT_BOOL DisplayDialog ( );
+
+    // Properties:
+    long GetLongData ( );
+    void PutLongData ( long _val );
+    _variant_t GetTextData ( );
+    void PutTextData ( const _variant_t & _val );
+};
+
+struct __declspec(uuid("c67be7d0-9010-4e06-b282-7e8798d15168"))
+Auto;
+    // [ default ] dispinterface IDemoAuto
+
+//
+// Wrapper method implementations
+//
+
+#include "e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\demo2.tli"
+
+} // namespace AutoDriv
+
+#pragma pack(pop)

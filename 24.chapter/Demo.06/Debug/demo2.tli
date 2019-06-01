@@ -1,0 +1,38 @@
+// Created by Microsoft (R) C/C++ Compiler Version 12.00.8168.0 (0a67d322).
+//
+// e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\demo2.tli
+//
+// Wrapper implementations for Win32 type library ..\Demo.03\debug\demo2.tlb
+// compiler-generated file created 07/25/10 at 13:43:57 - DO NOT EDIT!
+
+#pragma once
+
+//
+// dispinterface IDemoAuto wrapper method implementations
+//
+
+inline VARIANT_BOOL IDemoAuto::DisplayDialog ( ) {
+    VARIANT_BOOL _result;
+    _com_dispatch_method(this, 0x3, DISPATCH_METHOD, VT_BOOL, (void*)&_result, NULL);
+    return _result;
+}
+
+inline long IDemoAuto::GetLongData ( ) {
+    long _result;
+    _com_dispatch_propget(this, 0x1, VT_I4, (void*)&_result);
+    return _result;
+}
+
+inline void IDemoAuto::PutLongData ( long _val ) {
+    _com_dispatch_propput(this, 0x1, VT_I4, _val);
+}
+
+inline _variant_t IDemoAuto::GetTextData ( ) {
+    VARIANT _result;
+    _com_dispatch_propget(this, 0x2, VT_VARIANT, (void*)&_result);
+    return _variant_t(_result, false);
+}
+
+inline void IDemoAuto::PutTextData ( const _variant_t & _val ) {
+    _com_dispatch_propput(this, 0x2, VT_VARIANT, &_val);
+}

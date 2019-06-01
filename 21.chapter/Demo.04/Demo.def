@@ -1,0 +1,7 @@
+; Demo.def : Declares the module parameters for the DLL.
+
+LIBRARY      "Demo3"
+DESCRIPTION  'Demo Windows Dynamic Link Library'
+
+EXPORTS
+    ; Explicit exports can go here

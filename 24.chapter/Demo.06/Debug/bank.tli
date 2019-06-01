@@ -1,0 +1,34 @@
+// Created by Microsoft (R) C/C++ Compiler Version 12.00.8168.0 (056ecbac).
+//
+// e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\bank.tli
+//
+// Wrapper implementations for Win32 type library ..\Demo.02\debug\bank.tlb
+// compiler-generated file created 07/25/10 at 13:43:57 - DO NOT EDIT!
+
+#pragma once
+
+//
+// dispinterface IBank wrapper method implementations
+//
+
+inline double IBank::Withdrawal ( double dAmount ) {
+    double _result;
+    _com_dispatch_method(this, 0x2, DISPATCH_METHOD, VT_R8, (void*)&_result, 
+        L"\x0005", dAmount);
+    return _result;
+}
+
+inline HRESULT IBank::Deposit ( double dAmount ) {
+    return _com_dispatch_method(this, 0x3, DISPATCH_METHOD, VT_EMPTY, NULL, 
+        L"\x0005", dAmount);
+}
+
+inline double IBank::GetBalance ( ) {
+    double _result;
+    _com_dispatch_propget(this, 0x1, VT_R8, (void*)&_result);
+    return _result;
+}
+
+inline void IBank::PutBalance ( double _val ) {
+    _com_dispatch_propput(this, 0x1, VT_R8, _val);
+}

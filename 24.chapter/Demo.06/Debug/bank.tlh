@@ -1,0 +1,70 @@
+// Created by Microsoft (R) C/C++ Compiler Version 12.00.8168.0 (056ecbac).
+//
+// e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\bank.tlh
+//
+// C++ source equivalent of Win32 type library ..\Demo.02\debug\bank.tlb
+// compiler-generated file created 07/25/10 at 13:43:57 - DO NOT EDIT!
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+namespace BankDriv {
+
+//
+// Forward references and typedefs
+//
+
+struct __declspec(uuid("b66cb015-c9b1-485b-9e0b-d7ebd2858834"))
+/* dispinterface */ IBank;
+struct /* coclass */ Bank;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(IBank, __uuidof(IDispatch));
+
+//
+// Type library items
+//
+
+struct __declspec(uuid("b66cb015-c9b1-485b-9e0b-d7ebd2858834"))
+IBank : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetBalance,put=PutBalance))
+    double Balance;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    // Methods:
+    double Withdrawal (
+        double dAmount );
+    HRESULT Deposit (
+        double dAmount );
+
+    // Properties:
+    double GetBalance ( );
+    void PutBalance ( double _val );
+};
+
+struct __declspec(uuid("b66cb016-c9b1-485b-9e0b-d7ebd2858834"))
+Bank;
+    // [ default ] dispinterface IBank
+
+//
+// Wrapper method implementations
+//
+
+#include "e:\codes\mfc\07.kruglinski.inside visual c++ 5.0\24.chapter\demo.06\debug\bank.tli"
+
+} // namespace BankDriv
+
+#pragma pack(pop)
